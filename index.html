@@ -27,25 +27,43 @@
 
         .mogs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
         .mog-card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); position: relative; }
-        .mog-card.urgent { border-color: #ef4444; box-shadow: 0 0 15px rgba(239,68,68,0.2); }
+        .mog-card.urgent { border-color: #ef4444; box-shadow: 0 0 15px rgba(239,68,68,0.25); }
         
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid transparent; }
-        .badge-pending { background: #451a03; color: #fde047; border-color: #713f12; }
-        .badge-approved { background: #064e3b; color: #6ee7b7; border-color: #065f46; }
-        .badge-rejected { background: #450a0a; color: #fca5a5; border-color: #991b1b; }
+        /* Overall Status Quick Select */
+        .overall-select { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 800; border: 1px solid transparent; cursor: pointer; outline: none; transition: all 0.2s; }
+        .overall-select option { background: #0f172a; color: #fff; font-weight: bold; }
+        .status-pending { background: #451a03; color: #fde047; border-color: #ca8a04; }
+        .status-approved { background: #064e3b; color: #6ee7b7; border-color: #059669; }
+        .status-rejected { background: #450a0a; color: #fca5a5; border-color: #dc2626; }
 
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 12px; }
         .card-title { font-size: 18px; font-weight: bold; color: #fff; }
         .card-info { font-size: 14px; color: #94a3b8; margin-bottom: 16px; line-height: 1.6; }
         .card-info strong { color: #e2e8f0; }
 
-        .approvals-list { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 8px; margin-bottom: 16px; max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-        .approval-row { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 6px 10px; border-radius: 8px; border: 1px solid #334155; font-size: 12px; }
-        .approval-row select { background: #0f172a; color: #fff; border: 1px solid #334155; padding: 4px 8px; border-radius: 6px; font-size: 12px; outline: none; }
+        /* Dynamic Approvals with Color Coding */
+        .approvals-list { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 8px; margin-bottom: 16px; max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        .approval-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; border-radius: 8px; border: 1px solid #334155; font-size: 12px; transition: all 0.2s; }
+        .approval-row.row-pending { background: rgba(69, 26, 3, 0.45); border-color: rgba(202, 138, 4, 0.4); }
+        .approval-row.row-approved { background: rgba(6, 78, 59, 0.45); border-color: rgba(5, 150, 105, 0.4); }
+        .approval-row.row-rejected { background: rgba(69, 10, 10, 0.45); border-color: rgba(220, 38, 38, 0.4); }
+
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-left: 6px; }
+        .dot-pending { background: #facc15; box-shadow: 0 0 6px #facc15; }
+        .dot-approved { background: #34d399; box-shadow: 0 0 6px #34d399; }
+        .dot-rejected { background: #f87171; box-shadow: 0 0 6px #f87171; }
+
+        .approval-select { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; outline: none; cursor: pointer; border: 1px solid transparent; }
+        .approval-select option { background: #0f172a; color: #fff; }
+        .sel-pending { background: #451a03; color: #fde047; border-color: #a16207; }
+        .sel-approved { background: #064e3b; color: #6ee7b7; border-color: #047857; }
+        .sel-rejected { background: #450a0a; color: #fca5a5; border-color: #b91c1c; }
 
         .card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #334155; padding-top: 12px; margin-top: auto; }
         .btn-text-edit { color: #60a5fa; background: none; font-size: 13px; font-weight: bold; }
+        .btn-text-edit:hover { text-decoration: underline; }
         .btn-text-delete { color: #f87171; background: none; font-size: 13px; font-weight: bold; }
+        .btn-text-delete:hover { text-decoration: underline; }
 
         /* Modal */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 100; }
@@ -86,7 +104,7 @@
         <div id="urgentAlertBanner" class="alert-banner hidden">
             <span style="font-size: 24px;">🚨</span>
             <div>
-                <strong style="font-size: 16px; display: block; margin-bottom: 2px;">התראת חירום: מו״גים לקראת פקיעה (< 24 שעות) וטרם אושרו!</strong>
+                <strong style="font-size: 16px; display: block; margin-bottom: 2px;">התראת חירום: מו״גים לקראת פקיעה (&lt; 24 שעות) וטרם אושרו!</strong>
                 <span id="urgentAlertText" style="font-size: 13px; color: #fca5a5;"></span>
             </div>
         </div>
@@ -103,6 +121,7 @@
                     <option value="all">כל הסטטוסים</option>
                     <option value="מאושר">מאושר סופית</option>
                     <option value="בהמתנה">בהמתנה / בטיפול</option>
+                    <option value="לא מאושר">לא מאושר</option>
                 </select>
             </div>
             <div class="filter-box" style="justify-content: space-between;">
@@ -259,6 +278,19 @@
 
         function updateModalFieldStatus(index, status) {
             currentModalFields[index].status = status;
+            renderModalApprovalFields();
+        }
+
+        function getApprovalColorClasses(status) {
+            if (status === 'מאושר') return { row: 'row-approved', dot: 'dot-approved', sel: 'sel-approved' };
+            if (status === 'לא מאושר') return { row: 'row-rejected', dot: 'dot-rejected', sel: 'sel-rejected' };
+            return { row: 'row-pending', dot: 'dot-pending', sel: 'sel-pending' };
+        }
+
+        function getOverallColorClass(status) {
+            if (status === 'מאושר') return 'status-approved';
+            if (status === 'לא מאושר') return 'status-rejected';
+            return 'status-pending';
         }
 
         function renderModalApprovalFields() {
@@ -269,12 +301,15 @@
                 return;
             }
             currentModalFields.forEach((field, index) => {
+                const colors = getApprovalColorClasses(field.status);
                 const div = document.createElement('div');
-                div.className = 'approval-row';
+                div.className = `approval-row ${colors.row}`;
                 div.innerHTML = `
-                    <span style="font-weight: bold; color: #fff;">${field.name}</span>
+                    <span style="font-weight: bold; color: #fff; display: flex; align-items: center;">
+                        <span class="status-dot ${colors.dot}"></span>${field.name}
+                    </span>
                     <div style="display: flex; align-items: center; gap: 6px;">
-                        <select onchange="updateModalFieldStatus(${index}, this.value)">
+                        <select onchange="updateModalFieldStatus(${index}, this.value)" class="approval-select ${colors.sel}">
                             <option value="בתיאום" ${field.status === 'בתיאום' ? 'selected' : ''}>בתיאום</option>
                             <option value="מאושר" ${field.status === 'מאושר' ? 'selected' : ''}>מאושר</option>
                             <option value="לא מאושר" ${field.status === 'לא מאושר' ? 'selected' : ''}>לא מאושר</option>
@@ -316,12 +351,21 @@
             }
         }
 
+        function quickChangeOverallStatus(mogId, newStatus) {
+            const mog = mogs.find(m => m.id === mogId);
+            if (mog) {
+                mog.overallStatus = newStatus;
+                saveToStorage();
+                renderMogs();
+            }
+        }
+
         function quickToggleApproval(mogId, approvalIndex, newStatus) {
             const mog = mogs.find(m => m.id === mogId);
             if (mog && mog.approvals[approvalIndex]) {
                 mog.approvals[approvalIndex].status = newStatus;
                 
-                const allApproved = mog.approvals.every(a => a.status === 'מאושר');
+                const allApproved = mog.approvals.length > 0 && mog.approvals.every(a => a.status === 'מאושר');
                 if (allApproved && mog.overallStatus !== 'מאושר') {
                     mog.overallStatus = 'מאושר';
                 }
@@ -370,16 +414,17 @@
                 const hoursLeft = (mogTime - now) / (1000 * 60 * 60);
                 const isUrgent = hoursLeft > 0 && hoursLeft < 24 && mog.overallStatus !== 'מאושר';
 
-                let badgeClass = 'badge-pending';
-                if (mog.overallStatus === 'מאושר') badgeClass = 'badge-approved';
-                if (mog.overallStatus === 'לא מאושר') badgeClass = 'badge-rejected';
+                const overallClass = getOverallColorClass(mog.overallStatus);
 
                 let approvalsHtml = '';
                 mog.approvals.forEach((app, idx) => {
+                    const colors = getApprovalColorClasses(app.status);
                     approvalsHtml += `
-                        <div class="approval-row">
-                            <span style="font-weight: 500; color: #cbd5e1;">${app.name}</span>
-                            <select onchange="quickToggleApproval('${mog.id}', ${idx}, this.value)">
+                        <div class="approval-row ${colors.row}">
+                            <span style="font-weight: 600; color: #f1f5f9; display: flex; align-items: center;">
+                                <span class="status-dot ${colors.dot}"></span>${app.name}
+                            </span>
+                            <select onchange="quickToggleApproval('${mog.id}', ${idx}, this.value)" class="approval-select ${colors.sel}">
                                 <option value="בתיאום" ${app.status === 'בתיאום' ? 'selected' : ''}>בתיאום</option>
                                 <option value="מאושר" ${app.status === 'מאושר' ? 'selected' : ''}>מאושר</option>
                                 <option value="לא מאושר" ${app.status === 'לא מאושר' ? 'selected' : ''}>לא מאושר</option>
@@ -396,7 +441,11 @@
                     <div>
                         <div class="card-header">
                             <h3 class="card-title">${mog.name}</h3>
-                            <span class="badge ${badgeClass}">${mog.overallStatus}</span>
+                            <select onchange="quickChangeOverallStatus('${mog.id}', this.value)" class="overall-select ${overallClass}" title="שינוי סטטוס מו״ג כללי">
+                                <option value="בהמתנה" ${mog.overallStatus === 'בהמתנה' ? 'selected' : ''}>בהמתנה</option>
+                                <option value="מאושר" ${mog.overallStatus === 'מאושר' ? 'selected' : ''}>מאושר</option>
+                                <option value="לא מאושר" ${mog.overallStatus === 'לא מאושר' ? 'selected' : ''}>לא מאושר</option>
+                            </select>
                         </div>
                         <div class="card-info">
                             <p>👤 דורש: <strong>${mog.requester}</strong></p>
