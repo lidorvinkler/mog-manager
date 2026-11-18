@@ -10,7 +10,6 @@ class Unit {
     private:
         static const std::string UNIT_NAME;
         std::unique_ptr<Status> approveStatus;
-        std::unique_ptr<StatusCreator> statusCreator;
         static const Factory<Unit>& unitFactory();
     protected:
         Unit();

@@ -28,8 +28,7 @@ const Factory<Unit>& Unit::unitFactory() {
 
 // Unit
 Unit::Unit()
-    : approveStatus(std::make_unique<Waiting>()),
-      statusCreator(std::make_unique<StatusCreator>()) {
+    : approveStatus(std::make_unique<Waiting>()){
 }
 
 void Unit::setStatus(const std::string& name) {
