@@ -23,7 +23,6 @@ class Unit {
         virtual std::string print() const;
         static std::unique_ptr<Unit> creates(const std::string& name);
 };
-    const std::string Unit::UNIT_NAME = "unknown";
 
 class Aman : public Unit {
     private:
@@ -33,7 +32,6 @@ class Aman : public Unit {
         ~Aman() override = default;
         std::string getName() const override;
 };
-    const std::string Aman::UNIT_NAME = "aman";
 class Avir : public Unit {
     private:
         static const std::string UNIT_NAME;
@@ -42,7 +40,6 @@ class Avir : public Unit {
         ~Avir() override = default;
         std::string getName() const override;
 };
-    const std::string Avir::UNIT_NAME = "avir";
 
 class Yam : public Unit {
     private:
@@ -52,7 +49,6 @@ class Yam : public Unit {
         ~Yam() override = default;
         std::string getName() const override;
 };
-    const std::string Yam::UNIT_NAME = "yam";
 
 class Padam : public Unit {
     private:
@@ -62,7 +58,6 @@ class Padam : public Unit {
         ~Padam() override = default;
         std::string getName() const override;
 };
-    const std::string Padam::UNIT_NAME = "padam";
 
 class Patzan : public Unit {
     private:
@@ -72,7 +67,6 @@ class Patzan : public Unit {
         ~Patzan() override = default;
         std::string getName() const override;
 };
-    const std::string Patzan::UNIT_NAME = "patzan";
 
 class Pakmaz : public Unit {
     private:
@@ -82,7 +76,6 @@ class Pakmaz : public Unit {
         ~Pakmaz() override = default;
         std::string getName() const override;
 };
-    const std::string Pakmaz::UNIT_NAME = "pakmaz";
 
 class Shabak : public Unit {
     private:
@@ -92,7 +85,6 @@ class Shabak : public Unit {
         ~Shabak() override = default;
         std::string getName() const override;
 };
-    const std::string Shabak::UNIT_NAME = "shabak";
 
 class UnitComposite : public Unit {
     private:
@@ -100,7 +92,7 @@ class UnitComposite : public Unit {
     public:
         UnitComposite() = default;
         ~UnitComposite() override = default;
-        void setStatus(const std::string& stat) override;
+        void setStatus(const std::string& name, const std::string& stat);
         std::string getStatus() const override;
         void addUnit(const std::string& name);
         void addUnit(std::unique_ptr<Unit> unit);

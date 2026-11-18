@@ -2,6 +2,15 @@
 
 #include <stdexcept>
 
+const std::string Unit::UNIT_NAME = "unknown";
+const std::string Aman::UNIT_NAME = "aman";
+const std::string Avir::UNIT_NAME = "avir";
+const std::string Yam::UNIT_NAME = "yam";
+const std::string Padam::UNIT_NAME = "padam";
+const std::string Patzan::UNIT_NAME = "patzan";
+const std::string Pakmaz::UNIT_NAME = "pakmaz";
+const std::string Shabak::UNIT_NAME = "shabak";
+
 const Factory<Unit>& Unit::unitFactory() {
     static const Factory<Unit> factory = [] {
         Factory<Unit> f;
@@ -42,10 +51,12 @@ std::string Patzan::getName() const { return UNIT_NAME; }
 std::string Pakmaz::getName() const { return UNIT_NAME; }
 std::string Shabak::getName() const { return UNIT_NAME; }
 
-void UnitComposite::setStatus(const std::string& stat) {
-    for (const auto& elem : units) {
-        elem->setStatus(stat);
+void UnitComposite::setStatus(const std::string& name, const std::string& stat) {
+    auto it = units.find(name);
+    if (it == units.end()) {
+        throw std::runtime_error("Unit not found: " + name);
     }
+    units[name]->setStatus(stat);
 }
 
 std::string UnitComposite::print() const {
@@ -61,8 +72,13 @@ std::string UnitComposite::print() const {
 
 
 std::string UnitComposite::getStatus() const{
+    const std::string approved = Approved().getName();
+    const std::string denied = Denied().getName();
+    const std::string waiting = Waiting().getName();
+    std::string curr;
     for(const auto& elem : this -> units){
-        if (elem.second->getStatus() != Approved().getName()) {
+        curr = elem.second -> getStatus();
+        if (curr == denied || curr == waiting) {
             return elem.second->getStatus();
         }
     }
