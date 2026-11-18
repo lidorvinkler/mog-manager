@@ -85,5 +85,11 @@ std::string UnitComposite::getStatus() const{
 }
 
 void UnitComposite::addUnit(const std::string& name){
-    units[name] = creates(name);
+    std::unique_ptr<Unit> newElem;
+    try {
+        newElem = creates(name);
+    } catch (const std::invalid_argument&) {
+        throw std::runtime_error("Unit not found: " + name);
+    }
+    units[name] = std::move(newElem);
 }

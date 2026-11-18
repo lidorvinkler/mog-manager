@@ -94,6 +94,5 @@ class UnitComposite : public Unit {
         void setStatus(const std::string& name, const std::string& stat);
         std::string getStatus() const override;
         void addUnit(const std::string& name);
-        void addUnit(std::unique_ptr<Unit> unit);
         std::string print() const override;
 };
