@@ -1,101 +1,108 @@
 #pragma once
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "factory.h"
 #include "Status.h"
 
-Class Unit{
+class Unit {
     private:
-        unique_ptr<Status::Status> approveStatus;
-        unique_ptr<StatusCreator> statusCreator;
-        const static std::string UNIT_NAME;
-    protected: 
+        static const std::string UNIT_NAME;
+        std::unique_ptr<Status> approveStatus;
+        std::unique_ptr<StatusCreator> statusCreator;
+        static const Factory<Unit>& unitFactory();
+    protected:
         Unit();
+        virtual const Status& getStatusObject() const;
     public:
-        virtual ~Unit();
-        virtual setStatus(const std::string& stat);
-        virtual const Status& getStatus() const;
+        virtual ~Unit() = default;
+        virtual void setStatus(const std::string& stat);
         virtual std::string getStatus() const;
-        std::string getName() const;
-        std::string print() const;
-        
+        virtual std::string getName() const;
+        virtual std::string print() const;
+        static std::unique_ptr<Unit> creates(const std::string& name);
 };
-const static std::string Unit::UNIT_NAME = "unknown";
+    const std::string Unit::UNIT_NAME = "unknown";
 
-class UnitComposite : Unit{
+class Aman : public Unit {
     private:
-        std::vector <std::unique_ptr<Unit>>units;
+        static const std::string UNIT_NAME;
     public:
-        UnitComposite();
-        ~UnitComposite() = default;
-        setStatus(const std::string& stat) override;
+        Aman() = default;
+        ~Aman() override = default;
+        std::string getName() const override;
+};
+    const std::string Aman::UNIT_NAME = "aman";
+class Avir : public Unit {
+    private:
+        static const std::string UNIT_NAME;
+    public:
+        Avir() = default;
+        ~Avir() override = default;
+        std::string getName() const override;
+};
+    const std::string Avir::UNIT_NAME = "avir";
+
+class Yam : public Unit {
+    private:
+        static const std::string UNIT_NAME;
+    public:
+        Yam() = default;
+        ~Yam() override = default;
+        std::string getName() const override;
+};
+    const std::string Yam::UNIT_NAME = "yam";
+
+class Padam : public Unit {
+    private:
+        static const std::string UNIT_NAME;
+    public:
+        Padam() = default;
+        ~Padam() override = default;
+        std::string getName() const override;
+};
+    const std::string Padam::UNIT_NAME = "padam";
+
+class Patzan : public Unit {
+    private:
+        static const std::string UNIT_NAME;
+    public:
+        Patzan() = default;
+        ~Patzan() override = default;
+        std::string getName() const override;
+};
+    const std::string Patzan::UNIT_NAME = "patzan";
+
+class Pakmaz : public Unit {
+    private:
+        static const std::string UNIT_NAME;
+    public:
+        Pakmaz() = default;
+        ~Pakmaz() override = default;
+        std::string getName() const override;
+};
+    const std::string Pakmaz::UNIT_NAME = "pakmaz";
+
+class Shabak : public Unit {
+    private:
+        static const std::string UNIT_NAME;
+    public:
+        Shabak() = default;
+        ~Shabak() override = default;
+        std::string getName() const override;
+};
+    const std::string Shabak::UNIT_NAME = "shabak";
+
+class UnitComposite : public Unit {
+    private:
+        std::map<std::string, std::unique_ptr<Unit>> units;
+    public:
+        UnitComposite() = default;
+        ~UnitComposite() override = default;
+        void setStatus(const std::string& stat) override;
         std::string getStatus() const override;
-        void addUnits(const std::string& name);
+        void addUnit(const std::string& name);
+        void addUnit(std::unique_ptr<Unit> unit);
+        std::string print() const override;
 };
-
-class Aman : Unit{
-    private:
-        const static std::string UNIT_NAME;
-    public:
-        Aman();
-        ~Aman() = default;
-        std::string getName() const override;
-};
-const static std::string Aman::UNIT_NAME = "aman";
-
-class Avir : Unit{
-    private:
-        const static std::string UNIT_NAME;
-    public:
-        Avir();
-       ~Avir();
-        std::string getName() const override;
-};
-const static std::string Avir::UNIT_NAME = "avir";
-
-class Yam : Unit{
-    private:
-        const static std::string UNIT_NAME;
-    public:
-        Yam();
-       ~Yam();
-        std::string getName() const override;
-};
-const static std::string Yam::UNIT_NAME = "yam";
-
-class Padam : Unit{
-    private:
-        const static std::string UNIT_NAME;
-    public:
-        Padam();
-        ~Padam();
-        std::string getName() const override;
-};
-const static std::string Padam::UNIT_NAME = "padam";
-
-class Patzan : Unit{
-    private:
-        const static std::string UNIT_NAME;
-    public:
-        Patzan();
-        ~Patzan();
-        std::string getName() const override;
-};
-const static std::string Patzan::UNIT_NAME = "patzan";
-
-class Pakmaz : Unit{
-    private:
-        const static std::string UNIT_NAME;
-    public:
-        Pakmaz();
-        ~Pakmaz();
-        std::string getName() const override;
-};
-const static std::string Pakmaz::UNIT_NAME = "pakmaz";
-
-class Shabak {
-    private:
-        const static std::string UNIT_NAME;
-    public:
-        Shabak();
-        ~Shabak();
-        std::string getName() const override;
-};
-const static std::string Shabak::UNIT_NAME = "shabak";
