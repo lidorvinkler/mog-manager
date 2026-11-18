@@ -66,4 +66,437 @@
         .btn-text-delete:hover { text-decoration: underline; }
 
         /* Modal */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 16
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 100; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: #1e293b; border: 1px solid #334155; width: 100%; max-width: 600px; border-radius: 16px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 16px; }
+        .modal-header h2 { font-size: 18px; font-weight: bold; }
+        .close-btn { background: none; color: #94a3b8; font-size: 20px; font-weight: bold; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 500; color: #cbd5e1; margin-bottom: 6px; }
+        .form-control { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 14px; outline: none; }
+        .form-control:focus { border-color: #2563eb; }
+
+        .quick-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .tag-btn { background: #334155; color: #e2e8f0; font-size: 12px; padding: 6px 10px; border-radius: 8px; }
+        .tag-btn:hover { background: #475569; }
+
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #334155; padding-top: 16px; }
+        .btn-secondary { background: #334155; color: #fff; padding: 10px 20px; border-radius: 12px; font-weight: bold; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <header>
+        <div>
+            <h1><span class="bar"></span>מערכת ניהול מו״גים - חמ״ל</h1>
+            <p class="subtitle">מעקב, סטטוסים, אישורים דינמיים ותיעדוף התראות בזמן אמת</p>
+        </div>
+        <button onclick="openModal()" class="btn-primary">
+            + הוספת מו״ג חדש
+        </button>
+    </header>
+
+    <!-- Urgent Alert Banner -->
+    <div id="urgentAlertBanner" class="alert-banner hidden">
+        <span style="font-size: 24px;">🚨</span>
+        <div>
+            <strong style="font-size: 16px; display: block; margin-bottom: 2px;">התראת חירום: מו״גים לקראת פקיעה (&lt; 24 שעות) וטרם אושרו!</strong>
+            <span id="urgentAlertText" style="font-size: 13px; color: #fca5a5;"></span>
+        </div>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="filters-grid">
+        <div class="filter-box">
+            <span>🔍</span>
+            <input type="text" id="searchInput" name="searchInput" oninput="renderMogs()" placeholder="חיפוש לפי שם מו״ג או דורש...">
+        </div>
+        <div class="filter-box">
+            <span>⚙️</span>
+            <select id="statusFilter" name="statusFilter" onchange="renderMogs()">
+                <option value="all">כל הסטטוסים</option>
+                <option value="approved">מאושר סופית</option>
+                <option value="waiting">בהמתנה / בטיפול</option>
+                <option value="denied">לא מאושר</option>
+            </select>
+        </div>
+        <div class="filter-box" style="justify-content: space-between;">
+            <span style="color: #94a3b8; font-size: 13px;">סה״כ במערכת:</span>
+            <span id="totalCountBadge" style="background: #1d4ed8; color: #fff; padding: 2px 10px; border-radius: 20px; font-weight: bold; font-size: 13px;">0</span>
+        </div>
+    </div>
+
+    <!-- Mogs Grid -->
+    <div id="mogsContainer" class="mogs-grid">
+        <!-- Cards rendered via JS -->
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="mogModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">הוספת מו״ג חדש</h2>
+            <button onclick="closeModal()" class="close-btn">✕</button>
+        </div>
+        <form id="mogForm" onsubmit="saveMog(event)">
+            <input type="hidden" id="mogId" name="id">
+
+            <div class="form-group">
+                <label>שם המו״ג</label>
+                <input type="text" id="mogName" name="name" class="form-control" required placeholder="למשל: תקיפה מתוכננת בגזרה הצפונית">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label>דורש</label>
+                    <select id="mogRequester" name="requester" class="form-control" required>
+                        <option value="aman">אמ״ן</option>
+                        <option value="avir">חה״א</option>
+                        <option value="yam">חה״י</option>
+                        <option value="padam">פד״ם</option>
+                        <option value="pakmaz">פקמ״ז</option>
+                        <option value="patzan" selected>פצ״ן</option>
+                        <option value="shabak">שב״כ</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>מועד יעד (תאריך ושעה)</label>
+                    <input type="datetime-local" id="mogDateTime" name="dateTime" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>סטטוס אישור מו״ג כללי</label>
+                <select id="mogOverallStatus" name="overallStatus" class="form-control">
+                    <option value="waiting">בהמתנה</option>
+                    <option value="approved">מאושר</option>
+                    <option value="denied">לא מאושר</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="border-top: 1px solid #334155; padding-top: 12px;">
+                <label style="margin-bottom: 4px;">שדות אישורים דינמיים:</label>
+                <span style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 8px;">בחר מהרשימה המהירה או הוסף שדה חופשי:</span>
+
+                <div class="quick-tags">
+                    <button type="button" onclick="addApprovalField('aman')" class="tag-btn">+ אמ״ן</button>
+                    <button type="button" onclick="addApprovalField('avir')" class="tag-btn">+ חה״א</button>
+                    <button type="button" onclick="addApprovalField('yam')" class="tag-btn">+ חה״י</button>
+                    <button type="button" onclick="addApprovalField('padam')" class="tag-btn">+ פד״ם</button>
+                    <button type="button" onclick="addApprovalField('pakmaz')" class="tag-btn">+ פקמ״ז</button>
+                    <button type="button" onclick="addApprovalField('patzan')" class="tag-btn">+ פצ״ן</button>
+                    <button type="button" onclick="addApprovalField('shabak')" class="tag-btn">+ שב״כ</button>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                    <input type="text" id="customFieldName" name="customFieldName" placeholder="שם גורם נוסף חופשי..." class="form-control" style="font-size: 13px; padding: 8px;">
+                    <button type="button" onclick="addCustomApprovalField()" class="btn-secondary" style="padding: 8px 14px; font-size: 13px;">הוסף</button>
+                </div>
+
+                <div id="approvalFieldsContainer" class="approvals-list">
+                    <!-- Dynamic items -->
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="closeModal()" class="btn-secondary">ביטול</button>
+                <button type="submit" class="btn-primary">שמור מו״ג</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const DISPLAY_LABELS = {
+        aman: 'אמ״ן',
+        avir: 'חה״א',
+        yam: 'חה״י',
+        padam: 'פד״ם',
+        pakmaz: 'פקמ״ז',
+        patzan: 'פצ״ן',
+        shabak: 'שב״כ',
+        approved: 'מאושר',
+        denied: 'לא מאושר',
+        waiting: 'בהמתנה'
+    };
+
+    function getDisplayLabel(key) {
+        return DISPLAY_LABELS[key] || key;
+    }
+
+    let mogs = JSON.parse(localStorage.getItem('mogs_data')) || [
+        {
+            id: '1',
+            name: 'Northern Operational Event',
+            requester: 'patzan',
+            dateTime: '2026-11-18T08:00',
+            overallStatus: 'waiting',
+            approvals: [
+                { name: 'avir', status: 'approved' },
+                { name: 'patzan', status: 'waiting' },
+                { name: 'shabak', status: 'denied' }
+            ]
+        }
+    ];
+
+    let currentModalFields = [];
+
+    function saveToStorage() {
+        localStorage.setItem('mogs_data', JSON.stringify(mogs));
+    }
+
+    function openModal(mogId = null) {
+        currentModalFields = [];
+        const modal = document.getElementById('mogModal');
+        modal.classList.add('active');
+
+        if (mogId) {
+            document.getElementById('modalTitle').innerText = 'עריכת מו״ג';
+            const mog = mogs.find(m => m.id === mogId);
+            if (mog) {
+                document.getElementById('mogId').value = mog.id;
+                document.getElementById('mogName').value = mog.name;
+                document.getElementById('mogRequester').value = mog.requester;
+                document.getElementById('mogDateTime').value = mog.dateTime;
+                document.getElementById('mogOverallStatus').value = mog.overallStatus;
+                currentModalFields = JSON.parse(JSON.stringify(mog.approvals));
+            }
+        } else {
+            document.getElementById('modalTitle').innerText = 'הוספת מו״ג חדש';
+            document.getElementById('mogForm').reset();
+            document.getElementById('mogId').value = '';
+            document.getElementById('mogRequester').value = 'patzan';
+            document.getElementById('mogOverallStatus').value = 'waiting';
+            currentModalFields = [
+                { name: 'avir', status: 'waiting' },
+                { name: 'patzan', status: 'waiting' }
+            ];
+        }
+        renderModalApprovalFields();
+    }
+
+    function closeModal() {
+        document.getElementById('mogModal').classList.remove('active');
+    }
+
+    function addApprovalField(name, status = 'waiting') {
+        if (currentModalFields.some(f => f.name === name)) return;
+        currentModalFields.push({ name, status });
+        renderModalApprovalFields();
+    }
+
+    function addCustomApprovalField() {
+        const input = document.getElementById('customFieldName');
+        const name = input.value.trim();
+        if (!name) return;
+        addApprovalField(name, 'waiting');
+        input.value = '';
+    }
+
+    function removeModalField(index) {
+        currentModalFields.splice(index, 1);
+        renderModalApprovalFields();
+    }
+
+    function updateModalFieldStatus(index, status) {
+        currentModalFields[index].status = status;
+        renderModalApprovalFields();
+    }
+
+    function getApprovalColorClasses(status) {
+        if (status === 'approved') return { row: 'row-approved', dot: 'dot-approved', sel: 'sel-approved' };
+        if (status === 'denied') return { row: 'row-rejected', dot: 'dot-rejected', sel: 'sel-rejected' };
+        return { row: 'row-waiting', dot: 'dot-waiting', sel: 'sel-waiting' };
+    }
+
+    function getOverallColorClass(status) {
+        if (status === 'approved') return 'status-approved';
+        if (status === 'denied') return 'status-denied';
+        return 'status-waiting';
+    }
+
+    function renderModalApprovalFields() {
+        const container = document.getElementById('approvalFieldsContainer');
+        container.innerHTML = '';
+        if (currentModalFields.length === 0) {
+            container.innerHTML = '<p style="font-size: 11px; color: #64748b; text-align: center; padding: 6px;">אין שדות אישור מוגדרים</p>';
+            return;
+        }
+        currentModalFields.forEach((field, index) => {
+            const colors = getApprovalColorClasses(field.status);
+            const div = document.createElement('div');
+            div.className = `approval-row ${colors.row}`;
+            div.innerHTML = `
+                    <span style="font-weight: bold; color: #fff; display: flex; align-items: center;">
+                        <span class="status-dot ${colors.dot}"></span>${getDisplayLabel(field.name)}
+                    </span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <select name="modalApproval_${field.name}" onchange="updateModalFieldStatus(${index}, this.value)" class="approval-select ${colors.sel}">
+                            <option value="waiting" ${field.status === 'waiting' ? 'selected' : ''}>בתיאום</option>
+                            <option value="approved" ${field.status === 'approved' ? 'selected' : ''}>מאושר</option>
+                            <option value="denied" ${field.status === 'denied' ? 'selected' : ''}>לא מאושר</option>
+                        </select>
+                        <button type="button" onclick="removeModalField(${index})" style="color: #f87171; background: none; font-weight: bold; padding: 2px 6px;">✕</button>
+                    </div>
+                `;
+            container.appendChild(div);
+        });
+    }
+
+    function saveMog(event) {
+        event.preventDefault();
+        const id = document.getElementById('mogId').value || Date.now().toString();
+        const name = document.getElementById('mogName').value;
+        const requester = document.getElementById('mogRequester').value;
+        const dateTime = document.getElementById('mogDateTime').value;
+        const overallStatus = document.getElementById('mogOverallStatus').value;
+
+        const mogData = { id, name, requester, dateTime, overallStatus, approvals: currentModalFields };
+
+        const index = mogs.findIndex(m => m.id === id);
+        if (index !== -1) {
+            mogs[index] = mogData;
+        } else {
+            mogs.push(mogData);
+        }
+
+        saveToStorage();
+        closeModal();
+        renderMogs();
+    }
+
+    function deleteMog(id) {
+        if (confirm('האם למחוק מו״ג זה לצמיתות?')) {
+            mogs = mogs.filter(m => m.id !== id);
+            saveToStorage();
+            renderMogs();
+        }
+    }
+
+    function quickChangeOverallStatus(mogId, newStatus) {
+        const mog = mogs.find(m => m.id === mogId);
+        if (mog) {
+            mog.overallStatus = newStatus;
+            saveToStorage();
+            renderMogs();
+        }
+    }
+
+    function quickToggleApproval(mogId, approvalIndex, newStatus) {
+        const mog = mogs.find(m => m.id === mogId);
+        if (mog && mog.approvals[approvalIndex]) {
+            mog.approvals[approvalIndex].status = newStatus;
+
+            const allApproved = mog.approvals.length > 0 && mog.approvals.every(a => a.status === 'approved');
+            if (allApproved && mog.overallStatus !== 'approved') {
+                mog.overallStatus = 'approved';
+            }
+
+            saveToStorage();
+            renderMogs();
+        }
+    }
+
+    function renderMogs() {
+        const container = document.getElementById('mogsContainer');
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value;
+
+        let filtered = mogs.filter(mog => {
+            const requesterDisplay = getDisplayLabel(mog.requester).toLowerCase();
+            const matchesSearch =
+                mog.name.toLowerCase().includes(search) ||
+                requesterDisplay.includes(search) ||
+                mog.requester.toLowerCase().includes(search);
+            const matchesStatus = statusFilter === 'all' || mog.overallStatus === statusFilter;
+            return matchesSearch && matchesStatus;
+        }).sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
+
+        document.getElementById('totalCountBadge').innerText = mogs.length;
+
+        const now = new Date().getTime();
+        const urgentUnapproved = mogs.filter(m => {
+            const timeDiff = new Date(m.dateTime).getTime() - now;
+            const hoursLeft = timeDiff / (1000 * 60 * 60);
+            return hoursLeft > 0 && hoursLeft < 24 && m.overallStatus !== 'approved';
+        });
+
+        const alertBanner = document.getElementById('urgentAlertBanner');
+        if (urgentUnapproved.length > 0) {
+            alertBanner.classList.remove('hidden');
+            document.getElementById('urgentAlertText').innerText = `ישנם ${urgentUnapproved.length} מו״גים שמועדם בעוד פחות מ-24 שעות וטרם אושרו: ` + urgentUnapproved.map(u => u.name).join(', ');
+        } else {
+            alertBanner.classList.add('hidden');
+        }
+
+        container.innerHTML = '';
+        if (filtered.length === 0) {
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b; background: #1e293b; border-radius: 16px;">לא נמצאו מו״גים תואמים</div>';
+            return;
+        }
+
+        filtered.forEach(mog => {
+            const mogTime = new Date(mog.dateTime).getTime();
+            const hoursLeft = (mogTime - now) / (1000 * 60 * 60);
+            const isUrgent = hoursLeft > 0 && hoursLeft < 24 && mog.overallStatus !== 'approved';
+
+            const overallClass = getOverallColorClass(mog.overallStatus);
+
+            let approvalsHtml = '';
+            mog.approvals.forEach((app, idx) => {
+                const colors = getApprovalColorClasses(app.status);
+                approvalsHtml += `
+                        <div class="approval-row ${colors.row}">
+                            <span style="font-weight: 600; color: #f1f5f9; display: flex; align-items: center;">
+                                <span class="status-dot ${colors.dot}"></span>${getDisplayLabel(app.name)}
+                            </span>
+                            <select name="approval_${mog.id}_${app.name}" onchange="quickToggleApproval('${mog.id}', ${idx}, this.value)" class="approval-select ${colors.sel}">
+                                <option value="waiting" ${app.status === 'waiting' ? 'selected' : ''}>בתיאום</option>
+                                <option value="approved" ${app.status === 'approved' ? 'selected' : ''}>מאושר</option>
+                                <option value="denied" ${app.status === 'denied' ? 'selected' : ''}>לא מאושר</option>
+                            </select>
+                        </div>
+                    `;
+            });
+
+            const formattedDate = new Date(mog.dateTime).toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' });
+
+            const card = document.createElement('div');
+            card.className = `mog-card ${isUrgent ? 'urgent' : ''}`;
+            card.innerHTML = `
+                    <div>
+                        <div class="card-header">
+                            <h3 class="card-title">${mog.name}</h3>
+                            <select name="overallStatus_${mog.id}" onchange="quickChangeOverallStatus('${mog.id}', this.value)" class="overall-select ${overallClass}" title="שינוי סטטוס מו״ג כללי">
+                                <option value="waiting" ${mog.overallStatus === 'waiting' ? 'selected' : ''}>בהמתנה</option>
+                                <option value="approved" ${mog.overallStatus === 'approved' ? 'selected' : ''}>מאושר</option>
+                                <option value="denied" ${mog.overallStatus === 'denied' ? 'selected' : ''}>לא מאושר</option>
+                            </select>
+                        </div>
+                        <div class="card-info">
+                            <p>👤 דורש: <strong>${getDisplayLabel(mog.requester)}</strong></p>
+                            <p>📅 מועד: <strong style="${isUrgent ? 'color: #f87171;' : ''}">${formattedDate}</strong></p>
+                        </div>
+                        <div style="font-size: 12px; font-weight: bold; color: #94a3b8; margin-bottom: 6px;">סטטוס אישורים דינמיים:</div>
+                        <div class="approvals-list">
+                            ${approvalsHtml || '<span style="font-size: 11px; color: #64748b;">אין שדות אישור</span>'}
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button onclick="openModal('${mog.id}')" class="btn-text-edit">עריכה מלאה</button>
+                        <button onclick="deleteMog('${mog.id}')" class="btn-text-delete">מחיקה</button>
+                    </div>
+                `;
+            container.appendChild(card);
+        });
+    }
+
+    renderMogs();
+</script>
+</body>
+</html>
